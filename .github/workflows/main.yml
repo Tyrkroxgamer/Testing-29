@@ -1101,7 +1101,7 @@ jobs:
      Write-Host "Password: $env:RDP_PASS"
      Write-Host "==================`n"
      $n = 0
-     # 6 ghante ke hard limit se pehle khud nikal jao, taki Final Save aur Auto Restart normal chalein
+     # 6 ghante ke hard limit se pehle khud nikal jao, taki Final Save normal chale
      $deadline = [long]$env:JOB_START + (335 * 60)
      if (-not $env:JOB_START) { $deadline = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() + (320 * 60) }
      while ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds() -lt $deadline) {
@@ -1118,7 +1118,7 @@ jobs:
       if ($n % 2 -eq 0 -and (Test-Path "C:\save-apps.ps1")) { & "C:\save-apps.ps1" }
       if ($n % 5 -eq 0) { & "C:\save-data.ps1" }
      }
-     Write-Host "Time limit ke paas pahunch gaye, ab Final Save aur Auto Restart chalega."
+     Write-Host "Time limit ke paas pahunch gaye, ab Final Save chalega, phir run khatam. Dobara chalane ke liye Run workflow dabao."
      exit 0
   - name: Final Save (cancel par bhi chalega)
     if: always()
@@ -1131,16 +1131,4 @@ jobs:
      Start-Sleep -Seconds 2
      if (Test-Path "C:\save-apps.ps1") { & "C:\save-apps.ps1" }
      if (Test-Path "C:\save-data.ps1") { & "C:\save-data.ps1" }
-     exit 0
-  - name: Auto Restart (Final Save ke baad naya run)
-    if: ${{ !cancelled() }}
-    run: |
-     Write-Host "Final Save ho gaya, naya run trigger kar rahe hain..."
-     # workflow ki file ka asli naam GITHUB_WORKFLOW_REF se lo (owner/repo/.github/workflows/<file>.yml@ref)
-     $wf = "akash.yml"
-     if ($env:GITHUB_WORKFLOW_REF -match '/\.github/workflows/([^@/]+)@') { $wf = $Matches[1] }
-     Write-Host "Workflow file: $wf"
-     gh workflow run $wf --repo $env:GITHUB_REPOSITORY --ref $env:GITHUB_REF_NAME
-     if ($LASTEXITCODE -eq 0) { Write-Host "Naya run queue ho gaya (purana khatam hote hi shuru hoga)." }
-     else { Write-Host "Auto restart fail, manually Run workflow dabana padega" }
      exit 0
